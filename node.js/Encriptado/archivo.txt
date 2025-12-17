@@ -1,0 +1,1 @@
+¡Todo pasa en milisegundos! Al abrir el archivo, es posible que tu editor de texto no se haya actualizado o, lo más probable, que estés llamando a las funciones en un orden que te deja el archivo cifrado al final.

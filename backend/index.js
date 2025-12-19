@@ -8,6 +8,7 @@ const movieRoutes = require("./src/routes/movies.routes")
 const cinemaRoutes = require("./src/routes/cinemas.routes")
 const userRoutes = require("./src/routes/user.routes") 
 
+
 const app = express();
 
 connectBD();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/movies", movieRoutes)
 app.use("/api/cinemas", cinemaRoutes )
 app.use("/api/users", userRoutes)
+
 
 app.use((req, res) => {
     return res.status(404).json("Route not found")

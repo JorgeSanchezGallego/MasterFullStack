@@ -6,12 +6,16 @@ const {connectBD} = require("./src/config/db")
 
 const movieRoutes = require("./src/routes/movies.routes")
 const cinemaRoutes = require("./src/routes/cinemas.routes")
-const userRoutes = require("./src/routes/user.routes") 
+const userRoutes = require("./src/routes/user.routes"); 
+const { connectCloudinary } = require("./src/config/cloudinary");
+
 
 
 const app = express();
 
 connectBD();
+connectCloudinary();
+
 
 app.use(express.json());
 

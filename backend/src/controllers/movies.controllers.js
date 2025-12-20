@@ -1,5 +1,7 @@
 const Movie = require("../models/movie.model")
 
+const {deleteImgCloudinary} = require("../utils/cloudinary.utils")
+
 const getMovies = async (req, res) => {
     try {
         const movies = await Movie.find();
@@ -24,40 +26,59 @@ const getMovieById = async (req, res) => {
 
 const createMovie = async (req, res) => {
     try{
-    const movie = await Movie.create(req.body);
-    res.status(201).json(movie);
+        const movie = new Movie(req.body)
+        if (req.file) {
+            movie.img = req.file.path;
+        }
+        const movieDB = await movie.save();
+        return res.status(201).json(movieDB)
     } catch (err) {
-        res.status(400).json({error: "Error al cargar la pelicula", detalles: err.message})
+        if (req.file?.filename) await deleteImgCloudinary(req.file.filename);
+        return res.status(400).json({error: "Error al cargar la pelicula", detalles: err.message})
     }
 }
 
 
 const updateMovie = async (req, res) => {
     try {
-        const update = await Movie.findByIdAndUpdate(req.params.id, req.body, {runValidators: true})
-        if (!update) {
-            return res.status(404).json({error: "Pelicula no encontrada"})
+        const { id } = req.params
+        const prev = await Movie.findById(id)
+        if (!prev) return res.status(404).json({error: "Pelicula no encontrada"})
+
+        const updates = {...req.body};
+        let newImgId = null;
+        if (req.file){
+            updates.imgUrl = req.file.path
+            updates.imgId = req.file.filename
+            newImgId = req.file.filename
         }
-        res.status(200).json(update);
+        const updated = await Movie.findByIdAndUpdate(id, updates,{
+            runValidators: true
+        })
+
+        if (newImgId && prev.imgId){
+            await deleteImgCloudinary(prev.imgId)
+        }
+        return res.status(200).json(updated)
+        
     } catch (err) {
-        res.status(400).json({error: "Error al actualizar la pelicula", detalles: err.message})
+        if(req.file?.filename) await deleteImgCloudinary(req.file.filename)
+        return res.status(400).json({ error: "Error actualizando la pelicula", detalles: err.message})
     }
 }
 
 
 const deleteMovie = async (req, res) => {
     try {
-        const deleted = await Movie.findByIdAndDelete(req.params.id);
-        if (!deleted){
-            return res.status(404).json({Error: "Pelicula no encontrada"})
-        }
-        res.status(200).json({mensaje:"Pelicula eliminada correctamente"})
+        const { id } = req.params
+        const deleted = await Movie.findByIdAndDelete(id)
+        if (!deleted) return res.status(404).json({error: "Pelicula no encontrada"})
+        deleteImgCloudinary(deleted.img)
+        return res.status(200).json({mensaje: "Pelicula eliminada correctamente", elemento: deleted})
     } catch (err) {
-        res.status(400).json({
-            error: "Error al eliminar la pelicula", detalles: err.message,
-        });
+        return res.status(400).json({error: "Error eliminando pelicula" , detalles: err.message})
     }
-};
+}
 
 
 const searchMoviesByTitle = async (req, res) => {

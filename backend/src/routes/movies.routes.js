@@ -1,4 +1,5 @@
 const express = require("express")
+const {upload} = require ("../middlewares/file")
 const {getMovies,
   getMovieById,
   createMovie,
@@ -20,9 +21,9 @@ const {getMovies,
 
 
   router.get("/", getMovies)
-  router.post("/", createMovie)
+  router.post("/", upload.single('img'),createMovie)
   router.get("/:id", getMovieById)
-  router.put("/:id", updateMovie)
+  router.put("/:id", upload.single('img'),updateMovie)
   router.delete("/:id", deleteMovie)
 
 
